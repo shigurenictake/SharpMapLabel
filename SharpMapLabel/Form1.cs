@@ -535,7 +535,7 @@ namespace SharpMapLabel
                 rps = new RasterPointSymbolizer()
                 {
                     Symbol = (Image) _boat.Clone(),
-                    //Rotation = (float) row[2],
+                    Rotation = (float) row[2], //図形の回転
                     RemapColor = Color.White,
                     Scale = (float) row[3],
                     SymbolColor = Color.FromArgb((int) row[4])
