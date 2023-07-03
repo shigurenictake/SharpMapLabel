@@ -1,0 +1,81 @@
+
+App.config
+SharpMapLabel.csproj
+DlgSamplesMenu.cs
+DlgSamplesMenu.Designer.cs
+DockAreaForm.cs
+DockAreaForm.Designer.cs
+Form1.cs
+Form1.Designer.cs
+Form1.resx
+Form2.cs
+Form2.Designer.cs
+FormAnimation.cs
+FormAnimation.Designer.cs
+FormCreateTilesSample.cs
+FormCreateTilesSample.Designer.cs
+FormDemoDrawGeometries.cs
+FormDemoDrawGeometries.Designer.cs
+FormInteractiveVectorLayerRendering.cs
+FormInteractiveVectorLayerRendering.Designer.cs
+FormMapBox.cs
+FormMapBox.Designer.cs
+FormMovingObjectOverTileLayer.cs
+FormMovingObjectOverTileLayer.Designer.cs
+GdalConfiguration.cs
+LayerTools.cs
+MagnifierTool.cs
+packages.config
+Program.cs
+SampleTool.cs
+SharpMapTileSource.cs
+
+Images
+	Bank.gif
+	Car.gif
+	Hotel.gif
+	icon.png
+	Medical-Facility.gif
+	Restaurant.gif
+
+Properties
+	AssemblyInfo.cs
+	Resources.Designer.cs
+	Resources.resx
+	Settings.Designer.cs
+	Settings.settings
+
+Resources
+	OutfallSmall.png
+	PumpSmall.png
+	vessel_01.png
+	view_left_right.png
+	view_top_bottom.png
+	ZoomToExtents1.png
+
+Samples
+	CreateTilesSample.cs
+	FormSqlServerOpts.cs
+	FormSqlServerOpts.Designer.cs
+	FormSqlServerOpts.resx
+	GdalSample.cs
+	GdiImageLayerSample.cs
+	GeometryFeatureProviderSample.cs
+	GradiantThemeSample.cs
+	HeatLayerSample.cs
+	OgrSample.cs
+	OracleSample.cs
+	PostGisSample.cs
+	ShapefileSample.cs
+	ShapefileSampleOsm.cs
+	SpatiaLiteSample.cs
+	SqlServerSample.cs
+	TextOnPathSample.cs
+	TiledWmsSample.cs
+	TileLayerSample.cs
+	WfsSample.cs
+	WmsSample.cs
+
+
+
+
