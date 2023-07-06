@@ -1,5 +1,3 @@
-//using BruTile.Predefined;
-using GeoAPI.CoordinateSystems.Transformations;
 using GeoAPI.Geometries;
 using NetTopologySuite.Geometries;
 using SharpMap;
@@ -10,8 +8,6 @@ using SharpMap.Rendering.Decoration;
 using SharpMap.Rendering.Symbolizer;
 using SharpMap.Styles;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using SharpMapLabel.Properties;
@@ -19,7 +15,7 @@ using Point = NetTopologySuite.Geometries.Point;
 
 namespace SharpMapLabel
 {
-    public partial class FormLayerListImageGenerator : Form
+    public partial class MainForm : Form
     {
         private MovingObjects _fastBoats;
         private MovingObjects _mediumBoats;
@@ -53,13 +49,14 @@ namespace SharpMapLabel
         }
         
         //コンストラクタ
-        public FormLayerListImageGenerator()
+        public MainForm()
         {
             InitializeComponent();
         }
 
+
         //イベント フォーム ロード完了 
-        private void FormLayerListImageGenerator_Load(object sender, System.EventArgs e)
+        private void MainForm_Load(object sender, System.EventArgs e)
         {
             this.SizeChanged += Form_SizeChanged;
 
@@ -78,7 +75,7 @@ namespace SharpMapLabel
             }
 
             _boat = Resources.vessel_01;
-            
+
             var map = InitMap();
             InitBackground(map);
             InitLayers(map);
@@ -94,9 +91,8 @@ namespace SharpMapLabel
             _timer.Tick += TimerTick;
             _timer.Start();
         }
-
         //イベント フォーム 閉じる
-        private void FormLayerListImageGenerator_Closing(object sender, EventArgs e)
+        private void MainForm_Closing(object sender, EventArgs e)
         {
             this.SizeChanged -= Form_SizeChanged;
             _fastBoats?.Dispose();
@@ -106,20 +102,20 @@ namespace SharpMapLabel
             _timer.Stop();
             _timer.Tick -= TimerTick;
             _timer.Dispose();
-
         }
-
         //イベント フォーム リサイズ
         private void Form_SizeChanged(object sender, EventArgs e)
         {
             this.mb.Refresh();
         }
 
+
         //イベント ツリービュー ツリーノードのチェックボックスをオンオフ時
         private void tv_AfterCheck(object sender, TreeViewEventArgs e)
         {
             if (e.Node.Tag != null)
             {
+                //タグに紐づけられたレイヤ表示をオンオフ
                 var lyr = (Layer)e.Node.Tag;
                 lyr.Enabled = e.Node.Checked;
                 this.mb.Refresh();
@@ -130,16 +126,24 @@ namespace SharpMapLabel
         //イベント ツリービュー ノードがマウスでクリックされたとき
         private void tv_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
+            //右クリック以外なら何もしない
             if (e.Button != MouseButtons.Right) return;
 
+            //以降右クリック時の処理
+
+            //コンテキストメニューの生成
             var cm = new ContextMenu();
+            //クリックしたノードのレイヤを取得
             var vlyr = e.Node.Tag as VectorLayer;
             _contextLayer = e.Node.Tag as Layer;
 
+            //"Variable Layers"で始まる文字列か判定(大文字小文字の違いを無視する)
             if (vlyr != null && (e.Node.FullPath.StartsWith("Variable Layers", StringComparison.OrdinalIgnoreCase)))
             {
                 if (cm.MenuItems.Count > 0) cm.MenuItems.Add(new MenuItem("-"));
 
+                //"Fast"/"Slow"で始まる文字列か判定。
+                //更に、MovingObjectsクラス型変数がIsRunningならば"Stop",違うならば"Start"をコンテキストメニューに追加
                 if (_contextLayer.LayerName.StartsWith("Fast"))
                     cm.MenuItems.Add(_fastBoats.IsRunning ?
                         CreateMenuItem(enumMenuItem.StopMoving, "Stop") :
@@ -210,7 +214,7 @@ namespace SharpMapLabel
 
             cm.Show(tv, new System.Drawing.Point(e.X, e.Y));
         }
-
+        //メニューアイテムを作成する（コンテキストメニューに追加する用）
         private MenuItem CreateMenuItem(enumMenuItem eMenuItem, string text)
         {
             var mi = new MenuItem(text)
@@ -220,7 +224,6 @@ namespace SharpMapLabel
             mi.Click += MenuItemClick;
             return mi;
         }
-
         private void MenuItemClick (Object sender, EventArgs e)
         {
             var mi = sender as MenuItem;
@@ -319,42 +322,47 @@ namespace SharpMapLabel
         }
         #endregion
 
+
         //ツリービューの初期化
         private void InitTreeView(Map map)
         {
             var font = new System.Drawing.Font(tv.Font.FontFamily, tv.Font.Size, System.Drawing.FontStyle.Bold);
 
+            //ルートのノード生成
             tv.Nodes.Add(new TreeNode("Variable Layers") {NodeFont = font});
             tv.Nodes.Add(new TreeNode("Map Layers") { NodeFont = font });
             tv.Nodes.Add(new TreeNode("Background Layers") { NodeFont = font });
 
             // Populate Tree View
-            TreeViewAddLayerNode(tv.Nodes[0], map.VariableLayers);
-            TreeViewAddLayerNode(tv.Nodes[1], map.Layers);
-            TreeViewAddLayerNode(tv.Nodes[2], map.BackgroundLayer);
+            TreeViewAddLayerNode(tv.Nodes[0], map.VariableLayers);      //Variable Layers
+            TreeViewAddLayerNode(tv.Nodes[1], map.Layers);              //Map Layers
+            TreeViewAddLayerNode(tv.Nodes[2], map.BackgroundLayer);     //Background Layers
 
             this.tv.CheckBoxes = true;
             this.tv.ShowRootLines = false;
             this.tv.ExpandAll();
         }
-
+        //親ノード配下にレイヤ名の子ノードを追加する
         private void TreeViewAddLayerNode(TreeNode parentNode, LayerCollection collection)
         {
             foreach (var lyr in collection)
                 TreeViewAddLayerNode(parentNode, lyr);
         }
-
         private void TreeViewAddLayerNode(TreeNode parentNode, ILayer layer)
         {
+            //タグにレイヤを紐づけしたノードを生成
             var node = new TreeNode(layer.LayerName) { Tag = layer, Checked = layer.Enabled };
             parentNode.Nodes.Add(node);
 
+            //レイヤグループの場合は更に配下のレイヤ名のノードを追加する
             var lyrGrp = layer as LayerGroup;
             if (lyrGrp != null)
                 foreach (var lyr in lyrGrp.Layers)
                     TreeViewAddLayerNode(node, lyr);
         }
 
+
+        //マップ初期化
         private Map InitMap()
         {
             var res = new SharpMap.Map()
@@ -370,6 +378,8 @@ namespace SharpMapLabel
         private const int Interval = 50; // = 1000 / 25;
         private readonly Timer _timer = new Timer {Interval = Interval, Enabled = true};
 
+
+        //イベント Timer.Tick(指定したタイマーの間隔が経過し、タイマーが有効である場合に発生)
         private void TimerTick(object sender, EventArgs e)
         {
             if (!CallTouchTimer) return;
@@ -377,13 +387,12 @@ namespace SharpMapLabel
             if (_slowBoats.IsRunning || _fastBoats.IsRunning || _mediumBoats.IsRunning)
                 mb.Map.VariableLayers.TouchTimer();
         }
-
         public bool CallTouchTimer { get; set; }
 
-        //初期化 各種レイヤ及びオブジェクト
+
+        //★初期化 バリアブルレイヤ
         private void InitVariableLayers(Map map)
         {
-            var rnd = new Random(13);
             LayerGroup lyrGrp = null;
             VectorLayer lyr = null;
 
@@ -455,6 +464,7 @@ namespace SharpMapLabel
             return lblLayer;
         }
 
+        //初期化 マップレイヤ（四角の枠、点、マーク）
         private void InitLayers(Map map)
         {
             LayerGroup lyrGrp = null;
@@ -501,6 +511,7 @@ namespace SharpMapLabel
             map.Layers.Add(lyr);
         }
 
+        //初期化 背景レイヤ
         private void InitBackground(Map map)
         {
             //レイヤーの作成
@@ -517,6 +528,8 @@ namespace SharpMapLabel
             map.BackgroundLayer.Add(baseLayer);
         }
 
+
+        //シンボルのスタイル設定
         private void InitRasterPointSymbolizer(VectorLayer lyr, int style)
         {
             if (style == 1)
@@ -524,7 +537,6 @@ namespace SharpMapLabel
             else
                 lyr.Theme = null;
         }
-
         private static readonly object _boatKey = new object();
         private static VectorStyle GetRasterPointSymbolizerStyle(FeatureDataRow row)
         {
@@ -545,6 +557,8 @@ namespace SharpMapLabel
             return new VectorStyle() {PointSymbolizer = rps};
         }
 
+
+        //レイヤに図形を設定する
         private void PopulateGeomFeatureLayer(Map map, VectorLayer lyr, int direction)
         {
             var geoms = new Geometry[] {
@@ -559,6 +573,8 @@ namespace SharpMapLabel
                 gp.Geometries.Add(geom);
             
         }
+
+        //レイヤにシンボルの情報を設定する
         private void PopulateCharacterPointSymbolizerLayer(Map map, GeometryFeatureProvider fp, int direction)
         {
             FeatureDataRow fdr = null;
@@ -596,6 +612,7 @@ namespace SharpMapLabel
             fp.Features.AcceptChanges();
         }
 
+
         //レイヤ生成(レイヤ名,カラム(特徴情報)の見出し)
         private static VectorLayer CreateGeometryFeatureProviderLayer(string name, System.Data.DataColumn[] columns)
         {
@@ -611,7 +628,8 @@ namespace SharpMapLabel
 
             return new VectorLayer(name, new GeometryFeatureProvider(fdt));
         }
-               
+
+        //図形レイヤの生成
         private static VectorLayer CreateGeomLayer(string name, IGeometry[] geometries, System.Drawing.Color lineColor)
         {
             var lyr = new VectorLayer(name)
@@ -625,6 +643,7 @@ namespace SharpMapLabel
             return lyr;
         }
         
+        //四角の枠の配置を設定
         private static Coordinate[] GetRectanglePoints(Map map, MapDecorationAnchor anchor)
         {
             var env = map.Envelope;
@@ -678,6 +697,7 @@ namespace SharpMapLabel
             return coords;
         }
 
+        //四角の枠の中心を取得
         private Point GetRectangleCenter(Map map, MapDecorationAnchor anchor)
         {
             var coords = GetRectanglePoints(map, anchor);
@@ -685,6 +705,7 @@ namespace SharpMapLabel
                              (coords[0].Y + coords[2].Y) / 2.0);
         }
 
+        //点のシンボルのスタイルを取得
         public static VectorStyle GetCharacterPointStyle(FeatureDataRow row)
          {
             var cps = new CharacterPointSymbolizer();
@@ -696,169 +717,6 @@ namespace SharpMapLabel
 
     }
 
-    //オブジェククラス
-    public class MovingObjects : IDisposable
-    {
-        private static readonly Random Rnd = new Random(17);
 
-        private readonly List<MovingObject> _movingObjects = new List<MovingObject>();
-        
-        private readonly VectorLayer _lyr;
-        private readonly LabelLayer _llyr;
-        private readonly Map _map;
-
-        public double StepSize { get; set; }
-        private float _scale;
-        private Color _color;
-        private readonly Timer _timer;
-        
-        public MovingObjects(Timer timer, double stepSize, VectorLayer lyr, LabelLayer llyr, Map map, float scale, Color color)
-        {
-            _timer = timer;
-            _timer.Tick += Timer_Tick;
-
-            StepSize = stepSize;
-            _lyr = lyr;
-            _llyr = llyr;
-            _map = map;
-            _scale = scale;
-            _color = color;
-        }
-
-        public void Start() => IsRunning = true;
-        
-        public void Stop() => IsRunning = false;
-        
-        public bool IsRunning { get; private set; }
-
-        //オブジェクト追加
-        public void AddObject(string name, Point startAt)
-        {
-            lock (((ICollection) _movingObjects).SyncRoot)
-            {
-                var fp = (GeometryFeatureProvider) _lyr.DataSource;
-                var fdr = fp.Features.NewRow();
-                float heading = (float) Rnd.Next(0, 359);
-                //カラムと同順に情報を設定
-                fdr[1] = name; //★Name ラベル
-                fdr[2] = MovingObject.NormalizePositive(90f - heading); //Heading
-                fdr[3] = _scale; //Scale
-                fdr[4] = _color.ToArgb(); //ARGB
-                fdr.Geometry = startAt;
-                fp.Features.AddRow(fdr);
-                fp.Features.AcceptChanges();
-
-                var obj = new MovingObject(Convert.ToUInt32(fdr[0]), startAt, heading);
-                _movingObjects.Add(obj);
-            }
-        }
-
-        public bool DeleteObject(uint oid)
-        {
-            lock (((ICollection) _movingObjects).SyncRoot)
-            {
-                var obj = _movingObjects.Find(p => p.Oid == oid);
-                if (obj == null) return false;
-                
-                var fp = (GeometryFeatureProvider) _lyr.DataSource;
-                var fdr = fp.Features.Rows.Find(oid);
-                fp.Features.Rows.Remove(fdr);
-                fp.Features.AcceptChanges();
-
-                _movingObjects.Remove(obj);
-                return true;
-            }
-        }
-
-        private void Timer_Tick(object sender, EventArgs e)
-        {
-            if (IsRunning)
-            {
-                lock (((ICollection) _movingObjects).SyncRoot)
-                {
-                    var fp = (GeometryFeatureProvider) _lyr.DataSource;
-                    foreach (var obj in _movingObjects)
-                    {
-                        obj.Step(_map.Envelope, StepSize);
-                        var fdr = (FeatureDataRow) fp.Features.Rows.Find(obj.Oid);
-                        fdr[2] = 90f - obj.Heading;
-                        fdr.AcceptChanges();
-                    }
-                }
-                if (_lyr.Enabled) _lyr.RaiseRenderRequired();
-                if (_llyr.Enabled) _llyr.RaiseRenderRequired();
-            }
-        }
-
-        public void Dispose()
-        {
-            _timer.Tick -= Timer_Tick;
-        }
-    }
-    
-    public class MovingObject
-    {
-        public uint Oid { get; }
-        
-        public Point Position { get; private set; }
-        
-        public float Heading { get; set; }
-
-        public MovingObject(uint oid, Point startAt, float initialHeading)
-        {
-            Oid = oid;
-            Position = startAt;
-            Heading = initialHeading;
-        }
-
-        private const double DegToRad = Math.PI / 180d;
-
-        public void Step(Envelope currentExtent, double stepSize)
-        {
-            double heading = DegToRad * Heading;
-            double dx = Math.Cos(heading) * stepSize;
-            double dy = Math.Sin(heading) * stepSize;
-
-            var cs = Position.CoordinateSequence;
-            cs.SetOrdinate(0, Ordinate.X, cs.GetOrdinate(0, Ordinate.X) + dx);
-            cs.SetOrdinate(0, Ordinate.Y, cs.GetOrdinate(0, Ordinate.Y) + dy);
-            Position.GeometryChanged();
-
-
-            if (currentExtent.Contains(Position.Coordinate))
-                return;
-
-            if (Position.X < currentExtent.MinX || currentExtent.MaxX < Position.X)
-            {
-                dx = -dx;
-            }
-            else if (Position.Y < currentExtent.MinY || currentExtent.MinY < Position.Y)
-            {
-                dy = -dy;
-            }
-
-            Heading = NormalizePositive(90f - (float) Math.Atan2(dx, dy) * 180f / (float) Math.PI);
-            //Step(currentExtent, stepSize);
-        }
-
-        internal static float NormalizePositive(float angle)
-        {
-            if (angle < 0.0)
-            {
-                while (angle < 0.0)
-                    angle += 360f;
-                if (angle >= 360f)
-                    angle = 0.0f;
-            }
-            else
-            {
-                while (angle >= 360f)
-                    angle -= 360f;
-                if (angle < 0.0f)
-                    angle = 0.0f;
-            }
-            return angle;
-        }
-    }
 }
 

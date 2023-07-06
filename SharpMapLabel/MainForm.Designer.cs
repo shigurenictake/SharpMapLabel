@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace SharpMapLabel
 {
-    partial class FormLayerListImageGenerator
+    partial class MainForm
     {
         /// <summary>
         /// Required designer variable.
@@ -166,7 +166,7 @@ namespace SharpMapLabel
             this.contextMenuStrip1.Name = "contextMenuStrip1";
             this.contextMenuStrip1.Size = new System.Drawing.Size(61, 4);
             // 
-            // FormLayerListImageGenerator
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -176,10 +176,10 @@ namespace SharpMapLabel
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Name = "FormLayerListImageGenerator";
-            this.Text = "LayerListImageGenerator Validation";
-            this.Closing += new System.ComponentModel.CancelEventHandler(this.FormLayerListImageGenerator_Closing);
-            this.Load += new System.EventHandler(this.FormLayerListImageGenerator_Load);
+            this.Name = "MainForm";
+            this.Text = "MainForm";
+            this.Closing += new System.ComponentModel.CancelEventHandler(this.MainForm_Closing);
+            this.Load += new System.EventHandler(this.MainForm_Load);
             this.toolStripContainer1.ContentPanel.ResumeLayout(false);
             this.toolStripContainer1.TopToolStripPanel.ResumeLayout(false);
             this.toolStripContainer1.TopToolStripPanel.PerformLayout();

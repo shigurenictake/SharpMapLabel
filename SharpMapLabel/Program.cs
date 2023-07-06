@@ -37,7 +37,7 @@ namespace SharpMapLabel
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             //Application.Run(new DlgSamplesMenu());
-            Application.Run(new FormLayerListImageGenerator());
+            Application.Run(new MainForm());
         }
     }
 
