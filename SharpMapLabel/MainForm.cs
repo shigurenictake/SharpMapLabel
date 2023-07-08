@@ -18,7 +18,6 @@ namespace SharpMapLabel
     public partial class MainForm : Form
     {
         private MovingObjects _fastBoats;
-        private MovingObjects _mediumBoats;
         private static Image _boat;
 
         //コンストラクタ
@@ -66,7 +65,6 @@ namespace SharpMapLabel
         {
             this.SizeChanged -= Form_SizeChanged;
             _fastBoats?.Dispose();
-            _mediumBoats?.Dispose();
 
             _timer.Stop();
             _timer.Tick -= TimerTick;
@@ -100,7 +98,7 @@ namespace SharpMapLabel
         {
             if (!CallTouchTimer) return;
 
-            if (_fastBoats.IsRunning || _mediumBoats.IsRunning)
+            if (_fastBoats.IsRunning)
                     mb.Map.VariableLayers.TouchTimer();
         }
         public bool CallTouchTimer { get; set; }
@@ -125,24 +123,6 @@ namespace SharpMapLabel
             _fastBoats = new MovingObjects(_timer, 7, lyr, llyr, map, 0.8f, Color.Green);
             _fastBoats.AddObject("Fast 1あああ", GetRectangleCenter(map, MapDecorationAnchor.LeftTop));  //(Fast Boats Labels)ラベル追加「Fast 1」
             InitRasterPointSymbolizer(lyr, 0);
-            lyrGrp.Layers.Add(lyr);
-            lyrGrp.Layers.Add(llyr);
-            map.VariableLayers.Add(lyrGrp);
-            
-            // group layer with multiple targets + labels
-            lyrGrp = new LayerGroup("Medium Boats Group");
-            lyr = CreateGeometryFeatureProviderLayer("Medium Boats", new[] {
-                new System.Data.DataColumn("Name",typeof(string)),
-                new System.Data.DataColumn("Heading",typeof(float)),
-                new System.Data.DataColumn("Scale",typeof(float)),
-                new System.Data.DataColumn("ARGB",typeof(int))
-            });
-            lyr.Style.PointColor = new SolidBrush(Color.Yellow);
-            llyr = CreateLabelLayer(lyr, "Name", true);
-            _mediumBoats = new MovingObjects(_timer, 3, lyr, llyr, map, 1, Color.Yellow);
-            _mediumBoats.AddObject("Boat 1", GetRectangleCenter(map, MapDecorationAnchor.RightTop));
-            _mediumBoats.AddObject("Boat 2", GetRectangleCenter(map, MapDecorationAnchor.RightCenter));
-            InitRasterPointSymbolizer(lyr, 1);
             lyrGrp.Layers.Add(lyr);
             lyrGrp.Layers.Add(llyr);
             map.VariableLayers.Add(lyrGrp);
