@@ -89,7 +89,6 @@ namespace SharpMapLabel
             lyrGrp = new LayerGroup("Fast Boats Group");
             lyr = CreateGeometryFeatureProviderLayer("Fast Boats", new[] {
                     new System.Data.DataColumn("Name",typeof(string)),
-                    new System.Data.DataColumn("Heading",typeof(float)),
                     new System.Data.DataColumn("Scale",typeof(float)),
                     new System.Data.DataColumn("ARGB",typeof(int))
                 });
