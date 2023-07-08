@@ -13,7 +13,7 @@ using Point = NetTopologySuite.Geometries.Point;
 namespace SharpMapLabel
 {
     //オブジェククラス
-    public class MovingObjects : IDisposable
+    public class MovingObjects
     {
         private static readonly Random Rnd = new Random(17);
 
@@ -26,13 +26,9 @@ namespace SharpMapLabel
         public double StepSize { get; set; }
         private float _scale;
         private Color _color;
-        private readonly Timer _timer;
 
-        public MovingObjects(Timer timer, double stepSize, VectorLayer lyr, LabelLayer llyr, Map map, float scale, Color color)
+        public MovingObjects(double stepSize, VectorLayer lyr, LabelLayer llyr, Map map, float scale, Color color)
         {
-            _timer = timer;
-            _timer.Tick += Timer_Tick;
-
             StepSize = stepSize;
             _lyr = lyr;
             _llyr = llyr;
@@ -84,31 +80,6 @@ namespace SharpMapLabel
                 _movingObjects.Remove(obj);
                 return true;
             }
-        }
-
-        private void Timer_Tick(object sender, EventArgs e)
-        {
-            if (IsRunning)
-            {
-                lock (((ICollection)_movingObjects).SyncRoot)
-                {
-                    var fp = (GeometryFeatureProvider)_lyr.DataSource;
-                    foreach (var obj in _movingObjects)
-                    {
-                        obj.Step(_map.Envelope, StepSize);
-                        var fdr = (FeatureDataRow)fp.Features.Rows.Find(obj.Oid);
-                        fdr[2] = 90f - obj.Heading;
-                        fdr.AcceptChanges();
-                    }
-                }
-                if (_lyr.Enabled) _lyr.RaiseRenderRequired();
-                if (_llyr.Enabled) _llyr.RaiseRenderRequired();
-            }
-        }
-
-        public void Dispose()
-        {
-            _timer.Tick -= Timer_Tick;
         }
     }
 

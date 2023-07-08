@@ -36,12 +36,10 @@ namespace SharpMapLabel
                 if (renderer is SharpMap.Forms.ImageGenerator.LegacyMapBoxImageGenerator)
                 {
                     this.txtImgGeneration.Text = (this.txtImgGeneration.Text + "\n.    LegacyMapImageRenderer");
-                    CallTouchTimer = true;
                 }
                 else
                 {
                     this.txtImgGeneration.Text = (this.txtImgGeneration.Text + "\n.    LayerListImageGenerator");
-                    CallTouchTimer = false;
                 }
             }
 
@@ -56,19 +54,11 @@ namespace SharpMapLabel
             this.mb.Map.Center = new Coordinate(135, 36);
 
             this.mb.Refresh();
-
-            _timer.Tick += TimerTick;
-            _timer.Start();
         }
         //イベント フォーム 閉じる
         private void MainForm_Closing(object sender, EventArgs e)
         {
             this.SizeChanged -= Form_SizeChanged;
-            _fastBoats?.Dispose();
-
-            _timer.Stop();
-            _timer.Tick -= TimerTick;
-            _timer.Dispose();
         }
         //イベント フォーム リサイズ
         private void Form_SizeChanged(object sender, EventArgs e)
@@ -89,21 +79,6 @@ namespace SharpMapLabel
             return res;
         }
 
-        private const int Interval = 50; // = 1000 / 25;
-        private readonly Timer _timer = new Timer {Interval = Interval, Enabled = true};
-
-
-        //イベント Timer.Tick(指定したタイマーの間隔が経過し、タイマーが有効である場合に発生)
-        private void TimerTick(object sender, EventArgs e)
-        {
-            if (!CallTouchTimer) return;
-
-            if (_fastBoats.IsRunning)
-                    mb.Map.VariableLayers.TouchTimer();
-        }
-        public bool CallTouchTimer { get; set; }
-
-
         //★初期化 バリアブルレイヤ
         private void InitVariableLayers(Map map)
         {
@@ -120,7 +95,7 @@ namespace SharpMapLabel
                 });
             lyr.Style.PointColor = new SolidBrush(Color.Green);
             var llyr = CreateLabelLayer(lyr, "Name", true);
-            _fastBoats = new MovingObjects(_timer, 7, lyr, llyr, map, 0.8f, Color.Green);
+            _fastBoats = new MovingObjects(7, lyr, llyr, map, 0.8f, Color.Green);
             _fastBoats.AddObject("Fast 1あああ", GetRectangleCenter(map, MapDecorationAnchor.LeftTop));  //(Fast Boats Labels)ラベル追加「Fast 1」
             InitRasterPointSymbolizer(lyr, 0);
             lyrGrp.Layers.Add(lyr);
