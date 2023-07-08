@@ -22,38 +22,11 @@ namespace SharpMapLabel
         private MovingObjects _slowBoats;
         private static Image _boat;
 
-        private Layer _contextLayer;
-        
-        // Context Menu actions
-        private enum enumMenuItem
-        {
-            Refresh,             // MapBox.Refresh
-            IncrementLabelSize,  // Label Layers
-            DecrementLabelSize,  // Label Layers
-            StartMoving,         // Variable Layer moving object   
-            StopMoving,          // Variable Layer moving object
-            RegularSymbolizer,   // Variable Layer and Map Point layer
-            ThematicSymbolizer,  // Variable Layer and Map Point layer
-            IncreaseSymbolSize,  // Basic Vector Style Point Size
-            DecreaseSymbolSize,  // Basic Vector Style Point Size
-            SymbolOffsetTL,      // Basic Vector Style Point Size
-            SymbolOffsetTR,      // Basic Vector Style Point Size  
-            SymbolOffsetNone,    // Basic Vector Style Point Size
-            SymbolOffsetBL,      // Basic Vector Style Point Size
-            SymbolOffsetBR,      // Basic Vector Style Point Size
-            AlignHz,             // Regenerate Map Point layer data  
-            AlignVt,             // Regenerate Map Point layer data
-            AlignDiagonal ,      // Regenerate Map Point layer data
-            IncrementLineWidth,  // Rectangle layers
-            DecrementLineWidth   // Rectangle layers
-        }
-        
         //コンストラクタ
         public MainForm()
         {
             InitializeComponent();
         }
-
 
         //イベント フォーム ロード完了 
         private void MainForm_Load(object sender, System.EventArgs e)
@@ -80,7 +53,7 @@ namespace SharpMapLabel
             InitBackground(map);
             InitLayers(map);
             InitVariableLayers(map);
-            InitTreeView(map);
+            //InitTreeView(map);
 
             this.mb.Map = map;
 
@@ -108,259 +81,6 @@ namespace SharpMapLabel
         {
             this.mb.Refresh();
         }
-
-
-        //イベント ツリービュー ツリーノードのチェックボックスをオンオフ時
-        private void tv_AfterCheck(object sender, TreeViewEventArgs e)
-        {
-            if (e.Node.Tag != null)
-            {
-                //タグに紐づけられたレイヤ表示をオンオフ
-                var lyr = (Layer)e.Node.Tag;
-                lyr.Enabled = e.Node.Checked;
-                this.mb.Refresh();
-            }
-        }
-
-        #region  Context Menu Stuff
-        //イベント ツリービュー ノードがマウスでクリックされたとき
-        private void tv_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
-        {
-            //右クリック以外なら何もしない
-            if (e.Button != MouseButtons.Right) return;
-
-            //以降右クリック時の処理
-
-            //コンテキストメニューの生成
-            var cm = new ContextMenu();
-            //クリックしたノードのレイヤを取得
-            var vlyr = e.Node.Tag as VectorLayer;
-            _contextLayer = e.Node.Tag as Layer;
-
-            //"Variable Layers"で始まる文字列か判定(大文字小文字の違いを無視する)
-            if (vlyr != null && (e.Node.FullPath.StartsWith("Variable Layers", StringComparison.OrdinalIgnoreCase)))
-            {
-                if (cm.MenuItems.Count > 0) cm.MenuItems.Add(new MenuItem("-"));
-
-                //"Fast"/"Slow"で始まる文字列か判定。
-                //更に、MovingObjectsクラス型変数がIsRunningならば"Stop",違うならば"Start"をコンテキストメニューに追加
-                if (_contextLayer.LayerName.StartsWith("Fast"))
-                    cm.MenuItems.Add(_fastBoats.IsRunning ?
-                        CreateMenuItem(enumMenuItem.StopMoving, "Stop") :
-                        CreateMenuItem(enumMenuItem.StartMoving, "Start"));
-                else if (_contextLayer.LayerName.StartsWith("Slow"))
-                    cm.MenuItems.Add(_slowBoats.IsRunning ?
-                        CreateMenuItem(enumMenuItem.StopMoving, "Stop") :
-                        CreateMenuItem(enumMenuItem.StartMoving, "Start"));
-                else
-                    cm.MenuItems.Add(_mediumBoats.IsRunning ?
-                        CreateMenuItem(enumMenuItem.StopMoving, "Stop") :
-                        CreateMenuItem(enumMenuItem.StartMoving, "Start"));
-
-                //cm.MenuItems.Add(CreateMenuItem(enumMenuItem.StartMoving, "Start"));
-                //cm.MenuItems.Add(CreateMenuItem(enumMenuItem.StopMoving, "Stop"));
-                cm.MenuItems.Add(new MenuItem("-"));
-
-                if (vlyr.Theme == null)
-                {
-                    cm.MenuItems.Add(CreateMenuItem(enumMenuItem.ThematicSymbolizer, "Thematic Symbolizer"));
-                    cm.MenuItems.Add(new MenuItem("-"));
-                    cm.MenuItems.Add(CreateMenuItem(enumMenuItem.IncreaseSymbolSize, "Increment symbol size"));
-                    cm.MenuItems.Add(CreateMenuItem(enumMenuItem.DecreaseSymbolSize, "Decrement symbol size"));
-                }
-                else
-                    cm.MenuItems.Add(CreateMenuItem(enumMenuItem.RegularSymbolizer, "Basic Symbolizer"));
-            }
-            else if (vlyr != null && (e.Node.FullPath.StartsWith("Map Layers", StringComparison.OrdinalIgnoreCase)))
-            {
-                if (vlyr.LayerName.StartsWith("Point", StringComparison.OrdinalIgnoreCase) )
-                {
-                    if (vlyr.Theme == null)
-                    {
-                        // default point style
-                        if (cm.MenuItems.Count > 0) cm.MenuItems.Add(new MenuItem("-"));
-                        cm.MenuItems.Add(CreateMenuItem(enumMenuItem.IncreaseSymbolSize, "Increment symbol size"));
-                        cm.MenuItems.Add(CreateMenuItem(enumMenuItem.DecreaseSymbolSize, "Decrement symbol size"));
-                        cm.MenuItems.Add(new MenuItem("-"));
-                        cm.MenuItems.Add(CreateMenuItem(enumMenuItem.SymbolOffsetNone, "Remove symbol offset"));
-                        cm.MenuItems.Add(CreateMenuItem(enumMenuItem.SymbolOffsetTL, "Offset step upper left"));
-                        cm.MenuItems.Add(CreateMenuItem(enumMenuItem.SymbolOffsetTR, "Offset step upper right"));
-                        cm.MenuItems.Add(CreateMenuItem(enumMenuItem.SymbolOffsetBL, "Offset Step lower left"));
-                        cm.MenuItems.Add(CreateMenuItem(enumMenuItem.SymbolOffsetBR, "Offset step lower right"));
-                    }
-                    if (cm.MenuItems.Count > 0) cm.MenuItems.Add(new MenuItem("-"));
-                    cm.MenuItems.Add(CreateMenuItem(enumMenuItem.AlignHz, "Align Pts Horizontal"));
-                    cm.MenuItems.Add(CreateMenuItem(enumMenuItem.AlignVt, "Align Pts Vertical"));
-                    cm.MenuItems.Add(CreateMenuItem(enumMenuItem.AlignDiagonal, "Align Pts Diagonal"));
-                }
-
-                if (vlyr.LayerName.Contains("Rect"))
-                {
-                    if (cm.MenuItems.Count > 0) cm.MenuItems.Add(new MenuItem("-"));
-                    cm.MenuItems.Add(CreateMenuItem(enumMenuItem.IncrementLineWidth, "Increment line width"));
-                    cm.MenuItems.Add(CreateMenuItem(enumMenuItem.DecrementLineWidth, "Decrement line width"));
-                }
-            }
-
-            if (e.Node.Tag is LabelLayer)
-            {
-                if (cm.MenuItems.Count > 0) cm.MenuItems.Add(new MenuItem("-"));
-                cm.MenuItems.Add(CreateMenuItem(enumMenuItem.IncrementLabelSize, "Increment Label Size"));
-                cm.MenuItems.Add(CreateMenuItem(enumMenuItem.DecrementLabelSize, "Decrement Label Size"));
-            }
-
-            if (cm.MenuItems.Count > 0) cm.MenuItems.Add(new MenuItem("-"));
-            cm.MenuItems.Add(CreateMenuItem(enumMenuItem.Refresh, "Refresh [clear cache]"));
-
-            cm.Show(tv, new System.Drawing.Point(e.X, e.Y));
-        }
-        //メニューアイテムを作成する（コンテキストメニューに追加する用）
-        private MenuItem CreateMenuItem(enumMenuItem eMenuItem, string text)
-        {
-            var mi = new MenuItem(text)
-            {
-                Tag = eMenuItem,
-            };
-            mi.Click += MenuItemClick;
-            return mi;
-        }
-        private void MenuItemClick (Object sender, EventArgs e)
-        {
-            var mi = sender as MenuItem;
-            if (mi == null) return;
-
-            var vectorLyr = _contextLayer as VectorLayer;
-            var lblLyr = _contextLayer as LabelLayer;
-
-            switch ((enumMenuItem)mi.Tag)
-            {
-                //case enumMenuItem.Refresh:
-                //    this.mb.Refresh();
-                //    break;
-                case enumMenuItem.StartMoving:
-                    if (_contextLayer.LayerName.StartsWith("Fast"))
-                        _fastBoats?.Start();
-                    else if (_contextLayer.LayerName.StartsWith("Slow"))
-                        _slowBoats?.Start();
-                    else
-                        _mediumBoats?.Start();
-                    break;
-
-                case enumMenuItem.StopMoving:
-                    if (_contextLayer.LayerName.StartsWith("Fast"))
-                        _fastBoats?.Stop();
-                    else if (_contextLayer.LayerName.StartsWith("Slow"))
-                        _slowBoats?.Stop();
-                    else
-                        _mediumBoats?.Stop();
-                    break;
-
-                case enumMenuItem.IncrementLabelSize:
-                    lblLyr.Style.Font = new Font(lblLyr.Style.Font.FontFamily, lblLyr.Style.Font.Size + 2);
-                    break;
-                case enumMenuItem.DecrementLabelSize:
-                    lblLyr.Style.Font = new Font(lblLyr.Style.Font.FontFamily, lblLyr.Style.Font.Size - 2);
-                    break;
-                case enumMenuItem.RegularSymbolizer:
-                    InitRasterPointSymbolizer(vectorLyr, 0);
-                    break;
-                case enumMenuItem.ThematicSymbolizer:
-                    InitRasterPointSymbolizer(vectorLyr, 1);
-                    break;
-                case enumMenuItem.IncreaseSymbolSize:
-                    vectorLyr.Style.PointSize += 2;
-                    break;
-                case enumMenuItem.DecreaseSymbolSize:
-                    vectorLyr.Style.PointSize-= 2;
-                    break;
-                case enumMenuItem.SymbolOffsetTL:
-                    vectorLyr.Style.SymbolOffset = new PointF(vectorLyr.Style.SymbolOffset.X - 10f, vectorLyr.Style.SymbolOffset.Y - 10f);
-                    break;
-                case enumMenuItem.SymbolOffsetTR:
-                    vectorLyr.Style.SymbolOffset = new PointF(vectorLyr.Style.SymbolOffset.X + 10f, vectorLyr.Style.SymbolOffset.Y - 10f);
-                    break;
-                case enumMenuItem.SymbolOffsetNone:
-                    vectorLyr.Style.SymbolOffset = new PointF(0, 0);
-                    break;
-                case enumMenuItem.SymbolOffsetBL:
-                    vectorLyr.Style.SymbolOffset = new PointF(vectorLyr.Style.SymbolOffset.X - 10f, vectorLyr.Style.SymbolOffset.Y + 10f);
-                    break;
-                case enumMenuItem.SymbolOffsetBR:
-                    vectorLyr.Style.SymbolOffset = new PointF(vectorLyr.Style.SymbolOffset.X + 10f, vectorLyr.Style.SymbolOffset.Y + 10f);
-                    break;
-                case enumMenuItem.AlignHz:
-                    if (vectorLyr.Theme == null)
-                        PopulateGeomFeatureLayer(mb.Map, vectorLyr, 0);
-                    else
-                        PopulateCharacterPointSymbolizerLayer(mb.Map, (GeometryFeatureProvider)vectorLyr.DataSource, 0);
-                    break;
-                case enumMenuItem.AlignVt:
-                    if (vectorLyr.Theme == null)
-                        PopulateGeomFeatureLayer(mb.Map, vectorLyr, 1);
-                    else
-                        PopulateCharacterPointSymbolizerLayer(mb.Map, (GeometryFeatureProvider)vectorLyr.DataSource, 1); 
-                    break;
-                case enumMenuItem.AlignDiagonal:
-                    if (vectorLyr.Theme == null)
-                        PopulateGeomFeatureLayer(mb.Map, vectorLyr, 2);
-                    else
-                        PopulateCharacterPointSymbolizerLayer(mb.Map, (GeometryFeatureProvider)vectorLyr.DataSource, 2); 
-                    break;
-                case enumMenuItem.IncrementLineWidth:
-                    vectorLyr.Style.Line.Width += 1;
-                    break;
-                case enumMenuItem.DecrementLineWidth:
-                    vectorLyr.Style.Line.Width -= vectorLyr.Style.Line.Width <= 1 ? 0 : 1;
-                    break;
-
-                default:
-                    break;
-            }
-
-            this.mb.Refresh();
-
-        }
-        #endregion
-
-
-        //ツリービューの初期化
-        private void InitTreeView(Map map)
-        {
-            var font = new System.Drawing.Font(tv.Font.FontFamily, tv.Font.Size, System.Drawing.FontStyle.Bold);
-
-            //ルートのノード生成
-            tv.Nodes.Add(new TreeNode("Variable Layers") {NodeFont = font});
-            tv.Nodes.Add(new TreeNode("Map Layers") { NodeFont = font });
-            tv.Nodes.Add(new TreeNode("Background Layers") { NodeFont = font });
-
-            // Populate Tree View
-            TreeViewAddLayerNode(tv.Nodes[0], map.VariableLayers);      //Variable Layers
-            TreeViewAddLayerNode(tv.Nodes[1], map.Layers);              //Map Layers
-            TreeViewAddLayerNode(tv.Nodes[2], map.BackgroundLayer);     //Background Layers
-
-            this.tv.CheckBoxes = true;
-            this.tv.ShowRootLines = false;
-            this.tv.ExpandAll();
-        }
-        //親ノード配下にレイヤ名の子ノードを追加する
-        private void TreeViewAddLayerNode(TreeNode parentNode, LayerCollection collection)
-        {
-            foreach (var lyr in collection)
-                TreeViewAddLayerNode(parentNode, lyr);
-        }
-        private void TreeViewAddLayerNode(TreeNode parentNode, ILayer layer)
-        {
-            //タグにレイヤを紐づけしたノードを生成
-            var node = new TreeNode(layer.LayerName) { Tag = layer, Checked = layer.Enabled };
-            parentNode.Nodes.Add(node);
-
-            //レイヤグループの場合は更に配下のレイヤ名のノードを追加する
-            var lyrGrp = layer as LayerGroup;
-            if (lyrGrp != null)
-                foreach (var lyr in lyrGrp.Layers)
-                    TreeViewAddLayerNode(node, lyr);
-        }
-
 
         //マップ初期化
         private Map InitMap()
@@ -405,7 +125,7 @@ namespace SharpMapLabel
                     new System.Data.DataColumn("ARGB",typeof(int))
                 });
             lyr.Style.PointColor = new SolidBrush(Color.Green);
-            var llyr = CreateLabelLayer(lyr, "Name", false);
+            var llyr = CreateLabelLayer(lyr, "Name", true);
             _fastBoats = new MovingObjects(_timer, 7, lyr, llyr, map, 0.8f, Color.Green);
             _fastBoats.AddObject("Fast 1あああ", GetRectangleCenter(map, MapDecorationAnchor.LeftTop));  //(Fast Boats Labels)ラベル追加「Fast 1」
             InitRasterPointSymbolizer(lyr, 0);
@@ -422,7 +142,7 @@ namespace SharpMapLabel
                 new System.Data.DataColumn("ARGB",typeof(int))
             });
             lyr.Style.PointColor = new SolidBrush(Color.Yellow);
-            llyr = CreateLabelLayer(lyr, "Name", false);
+            llyr = CreateLabelLayer(lyr, "Name", true);
             _mediumBoats = new MovingObjects(_timer, 3, lyr, llyr, map, 1, Color.Yellow);
             _mediumBoats.AddObject("Boat 1", GetRectangleCenter(map, MapDecorationAnchor.RightTop));
             _mediumBoats.AddObject("Boat 2", GetRectangleCenter(map, MapDecorationAnchor.RightCenter));
@@ -441,7 +161,7 @@ namespace SharpMapLabel
             });
             // raster point symbolizer
             lyr.Style.PointColor = new SolidBrush(Color.Red);
-            llyr = CreateLabelLayer(lyr, "Name", false);
+            llyr = CreateLabelLayer(lyr, "Name", true);
             _slowBoats = new MovingObjects(_timer, 1, lyr, llyr, map, 1.2f, Color.Red);
             _slowBoats.AddObject("Slow 1", GetRectangleCenter(map, MapDecorationAnchor.LeftBottom));
             _slowBoats.AddObject("Slow 2", GetRectangleCenter(map, MapDecorationAnchor.CenterBottom));
@@ -555,23 +275,6 @@ namespace SharpMapLabel
             }
 
             return new VectorStyle() {PointSymbolizer = rps};
-        }
-
-
-        //レイヤに図形を設定する
-        private void PopulateGeomFeatureLayer(Map map, VectorLayer lyr, int direction)
-        {
-            var geoms = new Geometry[] {
-                GetRectangleCenter(map, MapDecorationAnchor.LeftTop),
-                GetRectangleCenter(map, direction == 0 ? MapDecorationAnchor.CenterTop : direction == 1 ? MapDecorationAnchor.LeftCenter  : MapDecorationAnchor.Center),
-                GetRectangleCenter(map, direction == 0 ? MapDecorationAnchor.RightTop : direction == 1 ? MapDecorationAnchor.LeftBottom  : MapDecorationAnchor.RightBottom)
-            };
-
-            var gp = (GeometryProvider)lyr.DataSource;
-            gp.Geometries.Clear();
-            foreach (var geom in geoms)
-                gp.Geometries.Add(geom);
-            
         }
 
         //レイヤにシンボルの情報を設定する

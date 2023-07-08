@@ -34,7 +34,6 @@ namespace SharpMapLabel
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.tv = new System.Windows.Forms.TreeView();
             this.toolStripContainer1 = new System.Windows.Forms.ToolStripContainer();
             this.mb = new SharpMap.Forms.MapBox();
             this.mapZoomToolStrip1 = new SharpMap.Forms.ToolBar.MapZoomToolStrip(this.components);
@@ -48,18 +47,6 @@ namespace SharpMapLabel
             this.toolStripContainer1.SuspendLayout();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // tv
-            // 
-            this.tv.CheckBoxes = true;
-            this.tv.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tv.Location = new System.Drawing.Point(0, 35);
-            this.tv.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.tv.Name = "tv";
-            this.tv.Size = new System.Drawing.Size(200, 478);
-            this.tv.TabIndex = 0;
-            this.tv.AfterCheck += new System.Windows.Forms.TreeViewEventHandler(this.tv_AfterCheck);
-            this.tv.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tv_NodeMouseClick);
             // 
             // toolStripContainer1
             // 
@@ -129,7 +116,6 @@ namespace SharpMapLabel
             // panel1
             // 
             this.panel1.Controls.Add(this.panel2);
-            this.panel1.Controls.Add(this.tv);
             this.panel1.Controls.Add(this.txtImgGeneration);
             this.panel1.Controls.Add(this.textBox1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
@@ -192,8 +178,6 @@ namespace SharpMapLabel
         }
 
         #endregion
-
-        private System.Windows.Forms.TreeView tv;
         private SharpMap.Forms.MapBox mb;
         private System.Windows.Forms.ToolStripContainer toolStripContainer1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
