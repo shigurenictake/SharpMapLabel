@@ -19,7 +19,6 @@ namespace SharpMapLabel
     {
         private MovingObjects _fastBoats;
         private MovingObjects _mediumBoats;
-        private MovingObjects _slowBoats;
         private static Image _boat;
 
         //コンストラクタ
@@ -68,7 +67,6 @@ namespace SharpMapLabel
             this.SizeChanged -= Form_SizeChanged;
             _fastBoats?.Dispose();
             _mediumBoats?.Dispose();
-            _slowBoats?.Dispose();
 
             _timer.Stop();
             _timer.Tick -= TimerTick;
@@ -102,8 +100,8 @@ namespace SharpMapLabel
         {
             if (!CallTouchTimer) return;
 
-            if (_slowBoats.IsRunning || _fastBoats.IsRunning || _mediumBoats.IsRunning)
-                mb.Map.VariableLayers.TouchTimer();
+            if (_fastBoats.IsRunning || _mediumBoats.IsRunning)
+                    mb.Map.VariableLayers.TouchTimer();
         }
         public bool CallTouchTimer { get; set; }
 
@@ -157,17 +155,6 @@ namespace SharpMapLabel
                 new System.Data.DataColumn("Scale",typeof(float)),
                 new System.Data.DataColumn("ARGB",typeof(int))
             });
-            // raster point symbolizer
-            lyr.Style.PointColor = new SolidBrush(Color.Red);
-            llyr = CreateLabelLayer(lyr, "Name", true);
-            _slowBoats = new MovingObjects(_timer, 1, lyr, llyr, map, 1.2f, Color.Red);
-            _slowBoats.AddObject("Slow 1", GetRectangleCenter(map, MapDecorationAnchor.LeftBottom));
-            _slowBoats.AddObject("Slow 2", GetRectangleCenter(map, MapDecorationAnchor.CenterBottom));
-            _slowBoats.AddObject("Slow 3", GetRectangleCenter(map, MapDecorationAnchor.RightBottom));
-            InitRasterPointSymbolizer(lyr, 1);
-            lyrGrp.Layers.Add(lyr);
-            lyrGrp.Layers.Add(llyr);
-            map.VariableLayers.Add(lyrGrp);
         }
 
         //★ラベルレイヤ生成 (ターゲットのレイヤ、カラム、有効判定)
