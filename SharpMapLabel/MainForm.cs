@@ -51,9 +51,7 @@ namespace SharpMapLabel
 
             var map = InitMap();
             InitBackground(map);
-            InitLayers(map);
             InitVariableLayers(map);
-            //InitTreeView(map);
 
             this.mb.Map = map;
 
@@ -184,53 +182,6 @@ namespace SharpMapLabel
             return lblLayer;
         }
 
-        //初期化 マップレイヤ（四角の枠、点、マーク）
-        private void InitLayers(Map map)
-        {
-            LayerGroup lyrGrp = null;
-            VectorLayer lyr = null;
-            Geometry[] geoms = null;
-
-            // group layer with 2 child layers (Blue Rect, Red Rect)
-            lyrGrp = new LayerGroup("Layer Group 1");
-
-            geoms = new Geometry[] { new LineString(GetRectanglePoints(map, MapDecorationAnchor.LeftTop)) };
-            lyrGrp.Layers.Add(CreateGeomLayer("Blue Rectangle", geoms, System.Drawing.Color.DodgerBlue));
-
-            geoms = new Geometry[] { new LineString(GetRectanglePoints(map, MapDecorationAnchor.CenterTop)) };
-            lyrGrp.Layers.Add(CreateGeomLayer("Red Rectangle", geoms, System.Drawing.Color.Red));
-            map.Layers.Add(lyrGrp);
-
-            // layer with Green Rect
-            geoms = new Geometry[] { new LineString(GetRectanglePoints(map, MapDecorationAnchor.RightTop)) };
-            lyr = CreateGeomLayer("Green Rectangle", geoms, System.Drawing.Color.Green);
-            map.Layers.Add(lyr);
-
-            // Point layer with basic Vector Style
-            geoms = new Geometry[] {
-                GetRectangleCenter(map, MapDecorationAnchor.LeftTop),
-                GetRectangleCenter(map, MapDecorationAnchor.Center),
-                GetRectangleCenter(map, MapDecorationAnchor.CenterBottom),
-            };
-            lyr = CreateGeomLayer("Points with Vector Style", geoms, System.Drawing.Color.Transparent);
-            //lyr.Style.SymbolOffset =  new System.Drawing.PointF(20,20);
-            lyr.Enabled = false;
-            map.Layers.Add(lyr);
-
-            // Char Symbol Layer with Thematic rendering
-            lyr = CreateGeometryFeatureProviderLayer("Points with thematic CPS", new [] {
-                new System.Data.DataColumn("CharIndex",typeof(int)),
-                new System.Data.DataColumn("CharSize",typeof(float)),
-                new System.Data.DataColumn("OffsetX",typeof(float)),
-                new System.Data.DataColumn("OffsetY", typeof(float))
-            });
-            PopulateCharacterPointSymbolizerLayer(map, (GeometryFeatureProvider)lyr.DataSource, 0);
-            lyr.Theme = new SharpMap.Rendering.Thematics.CustomTheme(GetCharacterPointStyle);
-            lyr.Enabled = false;
-
-            map.Layers.Add(lyr);
-        }
-
         //初期化 背景レイヤ
         private void InitBackground(Map map)
         {
@@ -277,45 +228,6 @@ namespace SharpMapLabel
             return new VectorStyle() {PointSymbolizer = rps};
         }
 
-        //レイヤにシンボルの情報を設定する
-        private void PopulateCharacterPointSymbolizerLayer(Map map, GeometryFeatureProvider fp, int direction)
-        {
-            FeatureDataRow fdr = null;
-
-            fp.Features.Clear();
-
-            fdr = fp.Features.NewRow();
-            fdr["CharIndex"] = 171;
-            fdr["CharSize"] = 15f;
-            fdr["OffsetX"] = -10f;
-            fdr["OffsetY"] = 5f;
-            //fdr["OffsetX"] = 135f; //イメージ座標のオフセット
-            //fdr["OffsetY"] = 35f; //イメージ座標のオフセット
-            fdr.Geometry = GetRectangleCenter(map, direction == 0 ? MapDecorationAnchor.LeftBottom : direction == 1 ? MapDecorationAnchor.RightBottom  : MapDecorationAnchor.LeftBottom);
-            fp.Features.AddRow(fdr);
-
-            fdr = fp.Features.NewRow();
-            fdr["CharIndex"] = 176;
-            fdr["CharSize"] = 20f;
-            fdr["OffsetX"] = -10f;
-            fdr["OffsetY"] = 5f;
-            //fdr["OffsetX"] = 135f; //イメージ座標のオフセット
-            //fdr["OffsetY"] = 35f; //イメージ座標のオフセット
-            fdr.Geometry = GetRectangleCenter(map, direction == 0 ? MapDecorationAnchor.CenterBottom : direction == 1 ? MapDecorationAnchor.RightCenter  : MapDecorationAnchor.Center);
-            fp.Features.AddRow(fdr);
-
-            fdr = fp.Features.NewRow();
-            fdr["CharIndex"] = 181;
-            fdr["CharSize"] = 25f;
-            fdr["OffsetX"] = -15f;
-            fdr["OffsetY"] = -10f;
-            fdr.Geometry = GetRectangleCenter(map, direction == 0 ? MapDecorationAnchor.RightBottom : MapDecorationAnchor.RightTop);
-            fp.Features.AddRow(fdr);
-
-            fp.Features.AcceptChanges();
-        }
-
-
         //レイヤ生成(レイヤ名,カラム(特徴情報)の見出し)
         private static VectorLayer CreateGeometryFeatureProviderLayer(string name, System.Data.DataColumn[] columns)
         {
@@ -332,20 +244,6 @@ namespace SharpMapLabel
             return new VectorLayer(name, new GeometryFeatureProvider(fdt));
         }
 
-        //図形レイヤの生成
-        private static VectorLayer CreateGeomLayer(string name, IGeometry[] geometries, System.Drawing.Color lineColor)
-        {
-            var lyr = new VectorLayer(name)
-            {
-                DataSource = new GeometryProvider(geometries),
-                SRID = 3857
-            };
-            lyr.Style.Line.Color = lineColor;
-            lyr.Style.Line.Width = 2f;
-
-            return lyr;
-        }
-        
         //四角の枠の配置を設定
         private static Coordinate[] GetRectanglePoints(Map map, MapDecorationAnchor anchor)
         {
