@@ -126,15 +126,6 @@ namespace SharpMapLabel
             lyrGrp.Layers.Add(lyr);
             lyrGrp.Layers.Add(llyr);
             map.VariableLayers.Add(lyrGrp);
-            
-            // group layer with multiple targets + labels
-            lyrGrp = new LayerGroup("Slow Boats Group");
-            lyr = CreateGeometryFeatureProviderLayer("Slow Boats", new[] {
-                new System.Data.DataColumn("Name",typeof(string)),
-                new System.Data.DataColumn("Heading",typeof(float)),
-                new System.Data.DataColumn("Scale",typeof(float)),
-                new System.Data.DataColumn("ARGB",typeof(int))
-            });
         }
 
         //★ラベルレイヤ生成 (ターゲットのレイヤ、カラム、有効判定)
