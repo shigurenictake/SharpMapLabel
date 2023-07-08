@@ -164,7 +164,6 @@ namespace SharpMapLabel
             this.MinimizeBox = false;
             this.Name = "MainForm";
             this.Text = "MainForm";
-            this.Closing += new System.ComponentModel.CancelEventHandler(this.MainForm_Closing);
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.toolStripContainer1.ContentPanel.ResumeLayout(false);
             this.toolStripContainer1.TopToolStripPanel.ResumeLayout(false);
