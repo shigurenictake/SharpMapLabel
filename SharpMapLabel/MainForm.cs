@@ -11,8 +11,6 @@ namespace SharpMapLabel
 {
     public partial class MainForm : Form
     {
-        private MovingObjects _fastBoats;
-
         //コンストラクタ
         public MainForm()
         {
@@ -27,9 +25,7 @@ namespace SharpMapLabel
             InitVariableLayers(map);
 
             this.mb.Map = map;
-
             this.mb.Map.Center = new Coordinate(135, 36);
-
             this.mb.Refresh();
         }
 
@@ -51,35 +47,48 @@ namespace SharpMapLabel
             // group layer with single target + labels
             lyrGrp = new LayerGroup("Fast Boats Group");
             //ターゲットレイヤの生成 {カラム1,カラム2,…}
-            lyr = CreateGeometryFeatureProviderLayer("Fast Boats", new[] {
-                    new System.Data.DataColumn("Name",typeof(string))
-                });
+            string name = "Fast Boats";
+            System.Data.DataColumn[] columns = new[] { new System.Data.DataColumn("Name", typeof(string)) };
+            {
+                var fdt = new FeatureDataTable();
+
+                fdt.Columns.AddRange(columns);
+                lyr = new VectorLayer(name, new GeometryFeatureProvider(fdt));
+            }
+
             lyr.Style.PointColor = new SolidBrush(Color.Yellow);
             //ラベルレイヤ生成、ターゲットレイヤに紐づけ
-            var llyr = CreateLabelLayer(lyr, "Name", true);
-            
-            //オブジェクト生成
-            _fastBoats = new MovingObjects(lyr);
-            //ポイント(ジオメトリ)生成
-            var geomPoint = new NetTopologySuite.Geometries.Point(new Coordinate(135.3, 36));
+            LabelLayer llyr;
+            string column = "Name";
+            bool enabled = true;
+            {
+                var lblLayer = new LabelLayer(lyr.LayerName + " Labels");
+                lblLayer.DataSource = lyr.DataSource;
+
+                lblLayer.LabelColumn = column;
+                lblLayer.Enabled = enabled;
+
+                llyr = lblLayer;
+            }
+
             //文字列をポイント(ジオメトリ)に付与
-            _fastBoats.AddObject("Fast 1あああ", geomPoint);  //★
+            name = "Fast 1あああ";
+            //ポイント(ジオメトリ)生成
+            NetTopologySuite.Geometries.Point startAt = new NetTopologySuite.Geometries.Point(new Coordinate(135.3, 36));
+            //オブジェクト生成
+            {
+                var fp = (GeometryFeatureProvider)lyr.DataSource;
+                var fdr = fp.Features.NewRow();
+                //カラムと同順に情報を設定
+                fdr[0] = name; //★Name ラベル
+                fdr.Geometry = startAt; //ジオメトリを設定
+                fp.Features.AddRow(fdr);
+            }
 
             //グループレイヤにまとめてマップに追加
             lyrGrp.Layers.Add(lyr);
             lyrGrp.Layers.Add(llyr);
             map.VariableLayers.Add(lyrGrp);
-        }
-
-        //★ラベルレイヤ生成 (ターゲットレイヤ、カラム、有効判定)
-        private LabelLayer CreateLabelLayer(VectorLayer lyr, string column, bool enabled)
-        {
-            var lblLayer = new LabelLayer( lyr.LayerName + " Labels");
-            lblLayer.DataSource = lyr.DataSource;
-
-            lblLayer.LabelColumn = column;
-            lblLayer.Enabled = enabled;
-            return lblLayer;
         }
 
         //初期化 背景レイヤ
@@ -94,16 +103,6 @@ namespace SharpMapLabel
             baseLayer.Style.EnableOutline = true;
 
             map.BackgroundLayer.Add(baseLayer);
-        }
-
-        //★レイヤ生成(レイヤ名,カラムの見出し)
-        private static VectorLayer CreateGeometryFeatureProviderLayer(string name, System.Data.DataColumn[] columns)
-        {
-            var fdt = new FeatureDataTable();
-
-            fdt.Columns.AddRange(columns);
-
-            return new VectorLayer(name, new GeometryFeatureProvider(fdt));
         }
     }
 }
